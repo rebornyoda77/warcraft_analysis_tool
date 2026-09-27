@@ -63,3 +63,13 @@ class SimRun(db.Model):
     duration = db.Column(db.Float)
     result_summary = db.Column(db.JSON, default=dict)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # "internal" (this app's own simulator, once built) or "raidbots" (an
+    # imported report). sim_type further distinguishes a Raidbots
+    # single-actor sim (Quick/Advanced Sim) from a profileset sim (Top
+    # Gear/Droptimizer), since the latter's result_summary holds a ranked
+    # list of combos rather than one result.
+    source = db.Column(db.String(16), nullable=False, default="internal")
+    sim_type = db.Column(db.String(16), nullable=False, default="single_actor")
+    external_report_id = db.Column(db.String(64))
+    external_url = db.Column(db.String(512))

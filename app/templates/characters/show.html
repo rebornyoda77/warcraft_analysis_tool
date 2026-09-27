@@ -57,4 +57,54 @@
     <label>Versatility <input type="number" step="0.01" name="versatility" value="{{ character.stats.versatility if character.stats else 0 }}"></label>
     <button type="submit">Update Stats</button>
   </form>
+
+  <h2>Import Sim Results</h2>
+
+  <h3>From Raidbots</h3>
+  <p class="muted">Run a sim on raidbots.com yourself, then paste the report URL (or its raw JSON as a
+    fallback if the URL fetch doesn't work) here. This app never submits sims to Raidbots — it only
+    reads a report you already ran.</p>
+  <form method="post" action="{{ url_for('characters.import_raidbots', character_id=character.id) }}" class="form">
+    <label>Raidbots report URL or ID
+      <input type="text" name="raidbots_url" placeholder="https://www.raidbots.com/simbot/report/...">
+    </label>
+    <label>Raw report JSON (optional fallback, if the URL fetch fails)
+      <textarea name="raidbots_json" rows="6" placeholder="Paste the report's raw JSON here if needed"></textarea>
+    </label>
+    <button type="submit">Import</button>
+  </form>
+
+  {% if sim_runs %}
+    <h3>Sim Runs</h3>
+    <table class="table">
+      <thead><tr><th>Source</th><th>Type</th><th>Spec</th><th>Result</th><th>When</th></tr></thead>
+      <tbody>
+        {% for run in sim_runs %}
+          <tr>
+            <td>
+              {% if run.source == 'raidbots' and run.external_url %}
+                <a href="{{ run.external_url }}" target="_blank" rel="noopener">Raidbots</a>
+              {% else %}
+                {{ run.source|title }}
+              {% endif %}
+            </td>
+            <td>{{ run.sim_type|replace('_', ' ')|title }}</td>
+            <td>{{ run.spec|title if run.spec else '—' }}</td>
+            <td>
+              {% if run.sim_type == 'single_actor' %}
+                {% if run.result_summary.dps %}{{ "%.0f"|format(run.result_summary.dps) }} DPS{% endif %}
+                {% if run.result_summary.hps %}{{ "%.0f"|format(run.result_summary.hps) }} HPS{% endif %}
+                {% if not run.result_summary.dps and not run.result_summary.hps %}—{% endif %}
+              {% elif run.sim_type == 'profileset' and run.result_summary.combos %}
+                Top: {{ run.result_summary.combos[0].name }} ({{ "%.0f"|format(run.result_summary.combos[0].mean) if run.result_summary.combos[0].mean else '—' }})
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>{{ run.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
 {% endblock %}

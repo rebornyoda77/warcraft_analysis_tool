@@ -2,7 +2,14 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 
 from app.models.db import db
 from app.models.character import Character, CharacterStats
+from app.models.combat_log import SimRun
 from app.engine.simc_parser import parse_simc_string
+from app.engine.raidbots_importer import (
+    RaidbotsImportError,
+    extract_report_id,
+    fetch_report_json,
+    parse_report,
+)
 
 bp = Blueprint("characters", __name__, url_prefix="/characters")
 
@@ -40,7 +47,12 @@ def new():
 @bp.route("/<int:character_id>")
 def show(character_id):
     character = Character.query.get_or_404(character_id)
-    return render_template("characters/show.html", character=character)
+    sim_runs = (
+        SimRun.query.filter_by(character_id=character.id)
+        .order_by(SimRun.created_at.desc())
+        .all()
+    )
+    return render_template("characters/show.html", character=character, sim_runs=sim_runs)
 
 
 @bp.route("/<int:character_id>/edit", methods=["GET", "POST"])
@@ -108,6 +120,45 @@ def import_simc(character_id):
             "in-game percentages; enter them manually below"
         )
     flash(f"Imported from SimC string: {', '.join(summary)}.", "success")
+    return redirect(url_for("characters.show", character_id=character.id))
+
+
+@bp.route("/<int:character_id>/import_raidbots", methods=["POST"])
+def import_raidbots(character_id):
+    character = Character.query.get_or_404(character_id)
+
+    url_or_id = request.form.get("raidbots_url", "").strip()
+    raw_json_text = request.form.get("raidbots_json", "").strip()
+
+    try:
+        if raw_json_text:
+            report_id = extract_report_id(url_or_id) if url_or_id else None
+            parsed = parse_report(raw_json_text, report_id=report_id, report_url=url_or_id or None)
+        elif url_or_id:
+            report_id = extract_report_id(url_or_id)
+            raw_json = fetch_report_json(url_or_id)
+            parsed = parse_report(raw_json, report_id=report_id, report_url=url_or_id)
+        else:
+            flash("Paste a Raidbots report URL/ID, or its raw JSON, first.", "error")
+            return redirect(url_for("characters.show", character_id=character.id))
+    except RaidbotsImportError as exc:
+        flash(f"Couldn't import that Raidbots report: {exc}", "error")
+        return redirect(url_for("characters.show", character_id=character.id))
+
+    sim_run = SimRun(
+        character_id=character.id,
+        spec=parsed["spec"] or character.spec,
+        duration=parsed["duration"],
+        result_summary=parsed["result_summary"],
+        source=parsed["source"],
+        sim_type=parsed["sim_type"],
+        external_report_id=parsed["external_report_id"],
+        external_url=parsed["external_url"],
+    )
+    db.session.add(sim_run)
+    db.session.commit()
+
+    flash(f"Imported {parsed['sim_type'].replace('_', ' ')} report from Raidbots.", "success")
     return redirect(url_for("characters.show", character_id=character.id))
 
 
