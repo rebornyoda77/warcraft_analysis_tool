@@ -1,0 +1,55 @@
+# Example systemd unit for running the WoW Toolkit web app headlessly on
+# a server (e.g. a Raspberry Pi), so it survives reboots and restarts
+# itself if it ever crashes. Mirrors the same pattern used for this Pi's
+# other standalone Flask tools (budget_tool, home_workout_template_generator).
+#
+# Install:
+#   sudo cp deploy/wow-toolkit-web.service /etc/systemd/system/
+#   sudo nano /etc/systemd/system/wow-toolkit-web.service   # edit User=/WorkingDirectory= below first
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now wow-toolkit-web
+
+[Unit]
+Description=WoW Toolkit web app
+# tailscaled.service only matters if you're using the --host 127.0.0.1 +
+# `tailscale serve` setup below -- harmless to leave in either way (a
+# nonexistent/inactive unit in After= just doesn't block startup), but
+# drop it if you're not using Tailscale at all.
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/wow-toolkit
+# Uses the venv's python (python3 -m venv .venv && pip install -r
+# requirements.txt) so this doesn't depend on whatever's on the system
+# Python. Adjust the path below (and User=/WorkingDirectory= above) if you
+# installed differently.
+
+# Option A (recommended): --host 127.0.0.1, reachable only via
+# `tailscale serve` running on this same machine. Nothing on your LAN (or
+# the internet) can reach the raw Flask port at all this way, and
+# `tailscale serve` gives you real HTTPS for free:
+#   sudo tailscale serve --bg 5060
+ExecStart=/home/pi/wow-toolkit/.venv/bin/python run.py --host 127.0.0.1 --port 5060
+
+# Option B: --host 0.0.0.0, for a reverse proxy that runs somewhere this
+# machine's own loopback can't reach -- e.g. Nginx Proxy Manager (or any
+# reverse proxy) in its own Docker container, which has its own network
+# namespace separate from the host's. 127.0.0.1 inside that container is
+# the container's loopback, not this Pi's -- it can only reach this app
+# via the Pi's real LAN IP, which means this app must bind 0.0.0.0 (every
+# interface), not just loopback. Comment out Option A above and uncomment
+# this instead if that's your setup, then point the proxy's host at this
+# machine's LAN IP and port 5060. Also restrict that port at this
+# machine's firewall to only the reverse proxy's IP, since 0.0.0.0 means
+# anything else on your LAN could otherwise reach the app directly:
+#   sudo ufw allow from <reverse-proxy's-IP-or-subnet> to any port 5060 proto tcp
+# ExecStart=/home/pi/wow-toolkit/.venv/bin/python run.py --host 0.0.0.0 --port 5060
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

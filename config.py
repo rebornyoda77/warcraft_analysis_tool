@@ -2,6 +2,10 @@ import os
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
+# Matches the port sequence used by this Pi's other standalone Flask
+# tools (budget_tool: 5000, home_workout_template_generator: 5050).
+DEFAULT_PORT = 5060
+
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-change-me")
