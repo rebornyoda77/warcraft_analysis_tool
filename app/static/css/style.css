@@ -113,3 +113,13 @@ button.danger {
 .card-links li {
   margin-bottom: 0.5rem;
 }
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+textarea {
+  font-family: ui-monospace, monospace;
+  min-height: 8rem;
+}

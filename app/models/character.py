@@ -13,6 +13,8 @@ class Character(db.Model):
     faction = db.Column(db.String(16))
     server = db.Column(db.String(64))
     talents = db.Column(db.JSON, default=dict)
+    gear = db.Column(db.JSON, default=dict)
+    simc_import_raw = db.Column(db.Text)
     notes = db.Column(db.Text)
 
     stats = db.relationship(

@@ -14,7 +14,41 @@
     <button type="submit" class="danger">Delete</button>
   </form>
 
+  <h2>Import from SimC Addon String</h2>
+  <p>In-game, type <code>/simc</code> to copy your gear/talents export, then paste it here.</p>
+  <form method="post" action="{{ url_for('characters.import_simc', character_id=character.id) }}" class="form">
+    <label>SimC export string
+      <textarea name="simc_string" rows="10" placeholder="# CharacterName - Restoration - Realm&#10;level=80&#10;race=draenei&#10;talents=...&#10;head=,id=...">{{ character.simc_import_raw or '' }}</textarea>
+    </label>
+    <button type="submit">Import</button>
+  </form>
+
+  {% if character.gear %}
+    <h3>Parsed Gear</h3>
+    <table class="table">
+      <thead><tr><th>Slot</th><th>Item ID</th><th>Bonus IDs</th><th>Gem IDs</th><th>Enchant ID</th></tr></thead>
+      <tbody>
+        {% for slot, attrs in character.gear.items() %}
+          <tr>
+            <td>{{ slot|replace('_', ' ')|title }}</td>
+            <td>{{ attrs.id or '—' }}</td>
+            <td>{{ attrs.bonus_id or '—' }}</td>
+            <td>{{ attrs.gem_id or '—' }}</td>
+            <td>{{ attrs.enchant_id or '—' }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  {% if character.talents and character.talents.raw_talent_string %}
+    <h3>Talents</h3>
+    <p class="muted" style="word-break: break-all;">{{ character.talents.raw_talent_string }}</p>
+  {% endif %}
+
   <h2>Stats</h2>
+  <p class="muted">Manual entry overrides whatever the SimC import applied — use this if the addon
+    export didn't include current stat percentages.</p>
   <form method="post" action="{{ url_for('characters.update_stats', character_id=character.id) }}" class="form">
     <label>Haste <input type="number" step="0.01" name="haste" value="{{ character.stats.haste if character.stats else 0 }}"></label>
     <label>Crit <input type="number" step="0.01" name="crit" value="{{ character.stats.crit if character.stats else 0 }}"></label>
