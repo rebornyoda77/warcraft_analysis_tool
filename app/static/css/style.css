@@ -123,3 +123,11 @@ textarea {
   font-family: ui-monospace, monospace;
   min-height: 8rem;
 }
+
+.item-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  vertical-align: middle;
+}

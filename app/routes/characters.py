@@ -1,9 +1,9 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, current_app, render_template, request, redirect, url_for, flash
 
 from app.models.db import db
 from app.models.character import Character, CharacterStats
 from app.models.combat_log import SimRun
-from app.engine.simc_parser import parse_simc_string
+from app.engine.data_sources import get_character_data_source
 from app.engine.raidbots_importer import (
     RaidbotsImportError,
     extract_report_id,
@@ -88,33 +88,29 @@ def import_simc(character_id):
         flash("Paste a SimC addon export string first.", "error")
         return redirect(url_for("characters.show", character_id=character.id))
 
-    parsed = parse_simc_string(raw_text)
+    source = get_character_data_source(current_app.config["CHARACTER_DATA_SOURCE"])
+    result = source.fetch(character, raw_input=raw_text)
 
     character.simc_import_raw = raw_text
-    character.gear = parsed["gear"]
-    character.talents = {
-        "raw_talent_string": parsed["talents_string"],
-        "spec_hint": parsed["spec_hint"],
-        "level": parsed["level"],
-        "race": parsed["race"],
-    }
+    character.gear = result.gear
+    character.talents = result.talents
 
     applied_stats = []
-    if parsed["stats_percent"]:
+    if result.stats_percent:
         stats = character.stats or CharacterStats(character_id=character.id)
-        for field, value in parsed["stats_percent"].items():
+        for field, value in result.stats_percent.items():
             setattr(stats, field, value)
             applied_stats.append(field)
         db.session.add(stats)
 
     db.session.commit()
 
-    summary = [f"{len(parsed['gear'])} gear slots"]
-    if parsed["talents_string"]:
+    summary = [f"{len(result.gear)} gear slots"]
+    if result.talents.get("raw_talent_string"):
         summary.append("talents")
     if applied_stats:
         summary.append(f"stats ({', '.join(applied_stats)})")
-    elif parsed["stats_rating"]:
+    elif result.stats_rating:
         summary.append(
             "stat ratings found but not applied — SimC exports don't include "
             "in-game percentages; enter them manually below"

@@ -15,6 +15,11 @@ class Character(db.Model):
     talents = db.Column(db.JSON, default=dict)
     gear = db.Column(db.JSON, default=dict)
     simc_import_raw = db.Column(db.Text)
+    # Path (relative to app/static/) to a locally-cached full character
+    # render/portrait image. Nothing populates this yet -- it's here for
+    # the future Blizzard character-media endpoint (see
+    # app/engine/data_sources.py's BlizzardMediaIconSource).
+    character_media = db.Column(db.String(255), nullable=True)
     notes = db.Column(db.Text)
 
     stats = db.relationship(

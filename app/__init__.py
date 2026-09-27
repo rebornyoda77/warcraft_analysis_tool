@@ -14,12 +14,13 @@ def create_app(config_class=Config):
 
     db.init_app(app)
 
-    from app.routes import characters, logs, simulator, stats
+    from app.routes import characters, logs, simulator, stats, icons
 
     app.register_blueprint(characters.bp)
     app.register_blueprint(logs.bp)
     app.register_blueprint(simulator.bp)
     app.register_blueprint(stats.bp)
+    app.register_blueprint(icons.bp)
 
     @app.route("/")
     def home():

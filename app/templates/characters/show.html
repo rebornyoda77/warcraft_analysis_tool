@@ -26,10 +26,15 @@
   {% if character.gear %}
     <h3>Parsed Gear</h3>
     <table class="table">
-      <thead><tr><th>Slot</th><th>Item ID</th><th>Bonus IDs</th><th>Gem IDs</th><th>Enchant ID</th></tr></thead>
+      <thead><tr><th></th><th>Slot</th><th>Item ID</th><th>Bonus IDs</th><th>Gem IDs</th><th>Enchant ID</th></tr></thead>
       <tbody>
         {% for slot, attrs in character.gear.items() %}
           <tr>
+            <td>
+              {% if attrs.id %}
+                <img class="item-icon" src="{{ url_for('icons.item_icon', item_id=attrs.id) }}" alt="">
+              {% endif %}
+            </td>
             <td>{{ slot|replace('_', ' ')|title }}</td>
             <td>{{ attrs.id or '—' }}</td>
             <td>{{ attrs.bonus_id or '—' }}</td>

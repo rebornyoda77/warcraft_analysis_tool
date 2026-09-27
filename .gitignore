@@ -3,6 +3,8 @@ __pycache__/
 .venv/
 venv/
 instance/*.db
+instance/item_icon_cache.json
+app/static/icons/*.jpg
 .env
 *.egg-info/
 .DS_Store

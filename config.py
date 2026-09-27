@@ -13,3 +13,10 @@ class Config:
         "DATABASE_URL", f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'wow_toolkit.db')}"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # Which CharacterDataSource/IconSource implementation to use (see
+    # app/engine/data_sources.py). Swap to "blizzard" once official API
+    # access unblocks -- everything that calls get_character_data_source()/
+    # get_icon_source() stays the same either way.
+    CHARACTER_DATA_SOURCE = os.environ.get("CHARACTER_DATA_SOURCE", "simc")
+    ICON_SOURCE = os.environ.get("ICON_SOURCE", "wowhead")
