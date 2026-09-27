@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Characters — WoW Toolkit{% endblock %}
+{% block content %}
+  <h1>Characters</h1>
+  <a class="button" href="{{ url_for('characters.new') }}">+ New Character</a>
+  {% if characters %}
+    <table class="table">
+      <thead>
+        <tr><th>Name</th><th>Class</th><th>Spec</th><th>Server</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for c in characters %}
+          <tr>
+            <td><a href="{{ url_for('characters.show', character_id=c.id) }}">{{ c.name }}</a></td>
+            <td>{{ c.char_class|title }}</td>
+            <td>{{ c.spec|title }}</td>
+            <td>{{ c.server or "—" }}</td>
+            <td><a href="{{ url_for('characters.edit', character_id=c.id) }}">Edit</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No characters yet.</p>
+  {% endif %}
+{% endblock %}

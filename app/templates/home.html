@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}WoW Toolkit — Home{% endblock %}
+{% block content %}
+  <h1>WoW Retail Toolkit</h1>
+  <p>Combat log analysis, rotation simulation, and stat-weight calculations for your characters.</p>
+  <ul class="card-links">
+    <li><a href="{{ url_for('characters.index') }}">Manage Characters</a></li>
+    <li><a href="{{ url_for('logs.index') }}">Combat Log Analyzer</a></li>
+    <li><a href="{{ url_for('simulator.index') }}">Rotation Simulator</a></li>
+    <li><a href="{{ url_for('stats.index') }}">Stat-Weight Calculator</a></li>
+  </ul>
+{% endblock %}

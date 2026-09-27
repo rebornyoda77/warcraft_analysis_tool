@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit" if character else "New" }} Character — WoW Toolkit{% endblock %}
+{% block content %}
+  <h1>{{ "Edit" if character else "New" }} Character</h1>
+  <form method="post" class="form">
+    <label>Name
+      <input type="text" name="name" value="{{ character.name if character else '' }}" required>
+    </label>
+    <label>Class
+      <select name="char_class" id="char_class" required>
+        {% for cls in class_specs %}
+          <option value="{{ cls }}" {{ "selected" if character and character.char_class == cls else "" }}>{{ cls|title }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Spec
+      <select name="spec" id="spec" required>
+        {% for cls, specs in class_specs.items() %}
+          {% for s in specs %}
+            <option value="{{ s }}" data-class="{{ cls }}" {{ "selected" if character and character.spec == s else "" }}>{{ s|title }}</option>
+          {% endfor %}
+        {% endfor %}
+      </select>
+    </label>
+    <label>Faction
+      <select name="faction">
+        <option value="">—</option>
+        <option value="alliance" {{ "selected" if character and character.faction == "alliance" else "" }}>Alliance</option>
+        <option value="horde" {{ "selected" if character and character.faction == "horde" else "" }}>Horde</option>
+      </select>
+    </label>
+    <label>Server
+      <input type="text" name="server" value="{{ character.server if character else '' }}">
+    </label>
+    <label>Notes
+      <textarea name="notes">{{ character.notes if character else '' }}</textarea>
+    </label>
+    <button type="submit">Save</button>
+  </form>
+  <script>
+    // Filter spec options to match the selected class.
+    const classSelect = document.getElementById("char_class");
+    const specSelect = document.getElementById("spec");
+    function filterSpecs() {
+      const cls = classSelect.value;
+      for (const opt of specSelect.options) {
+        opt.hidden = opt.dataset.class !== cls;
+      }
+    }
+    classSelect.addEventListener("change", filterSpecs);
+    filterSpecs();
+  </script>
+{% endblock %}

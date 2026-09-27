@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ character.name }} — WoW Toolkit{% endblock %}
+{% block content %}
+  <h1>{{ character.name }}</h1>
+  <p>{{ character.char_class|title }} — {{ character.spec|title }}
+    {% if character.faction %}· {{ character.faction|title }}{% endif %}
+    {% if character.server %}· {{ character.server }}{% endif %}
+  </p>
+  {% if character.notes %}<p>{{ character.notes }}</p>{% endif %}
+
+  <a href="{{ url_for('characters.edit', character_id=character.id) }}">Edit</a>
+  <form method="post" action="{{ url_for('characters.delete', character_id=character.id) }}"
+        onsubmit="return confirm('Delete {{ character.name }}?');" style="display:inline">
+    <button type="submit" class="danger">Delete</button>
+  </form>
+
+  <h2>Stats</h2>
+  <form method="post" action="{{ url_for('characters.update_stats', character_id=character.id) }}" class="form">
+    <label>Haste <input type="number" step="0.01" name="haste" value="{{ character.stats.haste if character.stats else 0 }}"></label>
+    <label>Crit <input type="number" step="0.01" name="crit" value="{{ character.stats.crit if character.stats else 0 }}"></label>
+    <label>Hit <input type="number" step="0.01" name="hit" value="{{ character.stats.hit if character.stats else 0 }}"></label>
+    <label>Mastery <input type="number" step="0.01" name="mastery" value="{{ character.stats.mastery if character.stats else 0 }}"></label>
+    <label>Versatility <input type="number" step="0.01" name="versatility" value="{{ character.stats.versatility if character.stats else 0 }}"></label>
+    <button type="submit">Update Stats</button>
+  </form>
+{% endblock %}
